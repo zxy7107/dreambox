@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>dreambox index</title>
+    <link rel="stylesheet" type="text/css" href="assets/css/admin-forms/css/admin-forms.css">
+    <link rel="stylesheet" type="text/css" href="assets/css/skin/default_skin/css/theme.css">
+    <style>
+    #content_wrapper {
+        left: 0;
+        margin-left: 0;
+    }
+    </style>
+</head>
+
+<body class="dashboard-page">
+    <div id="main">
+        <section id="content_wrapper">
+            <header id="topbar" class="alt">
+                <!-- <div class="topbar-left">
+						<ol class="breadcrumb">
+							<li class="crumb-icon">
+								<a href="index.html"><span class="glyphicon glyphicon-home"></span></a>
+							</li>
+							<li class="crumb-link">个人中心</li>
+							<li class="crumb-link"><a>风险临界值设置</a></li>
+						</ol>
+					</div> -->
+            </header>
+            <section id="content" class="table-layout">
+                <div class="tray tray-center">
+                    <!-- 	<h3 style="margin-left:20px;">风险临界值设置</h3>
+						<div class="admin-form theme-primary">
+							<div class="panel heading-border panel-primary">
+								<div class="panel-body bg-light">
+									<form id="form-ui" method="post">
+										<div class="panel-body p25 pb5">
+											<div id="tab1_1" class="tab-pane active">
+												<div class="section row">
+												  <div class="col-md-4">
+													<label for="cardmonth" class="field select">
+													  <select id="cardmonth" name="cardmonth">
+														<option value="">请选择小组</option>
+														<option value="01">A组</option>
+														<option value="02">B组</option>
+														<option value="03">C组</option>
+													  </select><i class="arrow double"></i>
+													</label>
+												  </div>
+												  <div class="col-md-4">
+													<label class="field">
+													  <input type="text" name="lastname" placeholder="请输入VaR风险临界值金额" class="gui-input">
+													</label>
+												  </div>
+												  <div class="col-md-4">
+													<label class="field">
+													  <input type="text" name="lastname" placeholder="请输入VaR风险临界值百分比" class="gui-input">
+													</label>
+												  </div>
+												</div>
+												<div class="section row">
+												  <div class="col-md-4">
+													<label for="trader" class="field select">
+													  <select id="trader" name="trader">
+														<option value="">请选择交易员</option>
+														<option value="01">交易员1</option>
+														<option value="02">交易员2</option>
+														<option value="03">交易员3</option>
+													  </select><i class="arrow double"></i>
+													</label>
+												  </div>
+												  <div class="col-md-4">
+													<label class="field">
+													  <input type="text" name="lastname" placeholder="请输入ES风险临界值金额" class="gui-input">
+													</label>
+												  </div>
+												  <div class="col-md-4">
+													<label class="field">
+													  <input type="text" name="lastname" placeholder="请输入ES风险临界值百分比" class="gui-input">
+													</label>
+												  </div>
+												</div>
+											</div>
+										</div>
+										<div class="text-center" style="margin-bottom:30px;">
+											<button class="button btn-primary" type="button">保存</button>
+										</div>
+									</form>
+								</div>
+							</div>
+						</div> -->
+                        <h1>所有者权益：{{accounting.formatMoney(netAsset, " ", 2, ",", ".")}}</h1>
+                        <h1>总余额：{{accounting.formatMoney(totalBalance, " ", 2, ",", ".")}}</h1>
+                        <h1>可分配金额：{{netAsset - totalBalance}}</h1>
+						<div class="panel" >
+                        <!-- <p>风险临界值列表</p> -->
+                        <div class="panel-body">
+                            <div class="table-responsive">
+                                <table class="table admin-form theme-warning tc-checkbox-1 fs13">
+                                    <thead>
+                                        <tr class="bg-light">
+                                            <!-- <th class="text-center" width="25%">成员</th> -->
+                                            <th class="text-center">类型</th>
+                                            <th class="text-center">所有者权益</th>
+                                            <th class="text-center">余额</th>
+                                            <th class="text-center">还需累积 / 超支</th>
+                                            <th class="text-center">目标金额 / 预算</th>
+                                            <th class="text-center">累积分配额</th>
+                                            <th class="text-center">累积支取额</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <template v-for="(v,k) in dreamList">
+                                        <tr v-for="(item,index) in v">
+                                        		<td>{{item['category']}}</td>
+                                        		<td >{{item['name']}}</td>
+                                            <td>{{accounting.formatMoney(item['balance'], " ", 2, ",", ".")}}</td>
+                                            <td>{{accounting.formatMoney(item['gap'], " ", 2, ",", ".")}}</td>
+                                            <td>{{accounting.formatMoney(item['target'], " ", 2, ",", ".")}}</td>
+                                            <td>{{accounting.formatMoney(item['totalAllocated'], " ", 2, ",", ".") }}</td>
+                                            <td>{{accounting.formatMoney(item['totalDrawed'], " ", 2, ",", ".")}}</td>
+                                        </tr>
+                                        </template>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    
+            </section>
+    </div>
+    <script src="assets/js/lib/requirejs2-3-5.js"></script>
+    <script>
+            require.config({
+        　　　　baseUrl: "./assets/js/",
+        　　　　paths: {
+        　　　　　　"jquery": "lib/jquery3-2-1",
+        　　　　　　"lodash": "lib/lodash4-17-4",
+        　　　　　　"_": "lib/underscore1-8-3",
+        　　　　　　"moment": "lib/moment",
+                  "vue" :"lib/vue",
+                  "expense": "data/expense",
+                  "income": "data/income",
+                  "transfer": "data/transfer",
+                  "allocate": "data/allocate",
+                  "dreamobj": "data/dreamobj",
+                  "target": "data/target",
+                  "accounting": "lib/accounting-0-4-2",
+        　　　　},
+                shim:{  
+                    'expense':{  
+                          deps:[],  
+                          exports: 'data'  
+                    } ,
+                    'income':{  
+                          deps:[],  
+                          exports: 'data'  
+                    } ,
+                    'transfer':{  
+                          deps:[],  
+                          exports: 'data'  
+                    } ,
+                    'allocate':{  
+                          deps:[],  
+                          exports: 'data'  
+                    } ,
+                    'dreamobj':{  
+                          deps:[],  
+                          exports: 'data'  
+                    } ,
+                    'target':{  
+                          deps:[],  
+                          exports: 'data'  
+                    } ,
+                }  
+        　　});
+    </script>
+    <script src="assets/js/lib/highcharts.src.js"></script>
+    <script src="assets/js/lib/highcharts-more.js"></script>
+    <script src="assets/js/lib/modules/exporting.js"></script>
+    <script src="assets/js/controller/index.js"></script>
+</body>
+
+</html>

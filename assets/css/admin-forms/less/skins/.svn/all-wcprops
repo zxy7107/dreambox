@@ -1,0 +1,65 @@
+K 25
+svn:wc:ra_dav:version-url
+V 76
+/svn/wisdom/!svn/ver/3538/fengkong/assets/admin-tools/admin-forms/less/skins
+END
+all-themes.less
+K 25
+svn:wc:ra_dav:version-url
+V 92
+/svn/wisdom/!svn/ver/3538/fengkong/assets/admin-tools/admin-forms/less/skins/all-themes.less
+END
+theme-info.less
+K 25
+svn:wc:ra_dav:version-url
+V 92
+/svn/wisdom/!svn/ver/3538/fengkong/assets/admin-tools/admin-forms/less/skins/theme-info.less
+END
+theme-danger.less
+K 25
+svn:wc:ra_dav:version-url
+V 94
+/svn/wisdom/!svn/ver/3538/fengkong/assets/admin-tools/admin-forms/less/skins/theme-danger.less
+END
+colors.less
+K 25
+svn:wc:ra_dav:version-url
+V 88
+/svn/wisdom/!svn/ver/3538/fengkong/assets/admin-tools/admin-forms/less/skins/colors.less
+END
+theme-dark.less
+K 25
+svn:wc:ra_dav:version-url
+V 92
+/svn/wisdom/!svn/ver/3538/fengkong/assets/admin-tools/admin-forms/less/skins/theme-dark.less
+END
+theme-primary.less
+K 25
+svn:wc:ra_dav:version-url
+V 95
+/svn/wisdom/!svn/ver/3538/fengkong/assets/admin-tools/admin-forms/less/skins/theme-primary.less
+END
+theme-system.less
+K 25
+svn:wc:ra_dav:version-url
+V 94
+/svn/wisdom/!svn/ver/3538/fengkong/assets/admin-tools/admin-forms/less/skins/theme-system.less
+END
+theme-warning.less
+K 25
+svn:wc:ra_dav:version-url
+V 95
+/svn/wisdom/!svn/ver/3538/fengkong/assets/admin-tools/admin-forms/less/skins/theme-warning.less
+END
+theme-alert.less
+K 25
+svn:wc:ra_dav:version-url
+V 93
+/svn/wisdom/!svn/ver/3538/fengkong/assets/admin-tools/admin-forms/less/skins/theme-alert.less
+END
+theme-success.less
+K 25
+svn:wc:ra_dav:version-url
+V 95
+/svn/wisdom/!svn/ver/3538/fengkong/assets/admin-tools/admin-forms/less/skins/theme-success.less
+END
