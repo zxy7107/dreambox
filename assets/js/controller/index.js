@@ -60,7 +60,8 @@ require(['jquery', 'lodash', 'moment', 'vue', 'expense', 'income', 'transfer', '
             },
             // netAsset: 361304.18,//
             // netAsset: 351914.91,//
-            netAsset: 355949.98,//11-10 11月初预算 
+            // netAsset: 355949.98,//11-10 11月初预算 
+            netAsset: 349789.58,//12-3  
             accounting: accounting
 
         },
@@ -182,8 +183,31 @@ require(['jquery', 'lodash', 'moment', 'vue', 'expense', 'income', 'transfer', '
 
         },
         methods: {
+            /**
+             * 点击td显示记录明细（累积支取额，累积分配额）
+             * @param  {[type]} item     [description]
+             * @param  {[type]} dataType [description]
+             * @return {[type]}          [description]
+             */
+            showRecords: function(item, dataType) {
+                var self = this;
+                switch(dataType) {
+                    case 'expense':
+                        $.each(self.projects[item.category]['expense'][item.name], function(k,v){
+                            console.log('·' + v[5] + ' - ' + v[9].replace(/\d\d:\d\d:\d\d/,'') + ' - ' + v[10])
+                        })
+                        break;
+                    case 'allocate':
+                        $.each(self.projects[item.category]['allocate'][item.name], function(k,v){
+                            console.log(v[1] + ' - ' + v[3])
+                        })
+                        break;
+                    default:
+                        break;
+                }
+                
+            },
             collectProjectsNames: function(category) {
-                // var projectsNames = {};
                 var self = this;
                 _.each(self.dreamObj, function(v, k) {
                     if (_.isMatch(v, { category: category })) {

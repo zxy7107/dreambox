@@ -2,5 +2,6 @@
 myMoney-bk.xls
 
 myMoney1.xls
-
+myMoney1-bk.xls
 node_modules/*
+assets/js/data/*
