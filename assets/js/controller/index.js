@@ -61,7 +61,9 @@ require(['jquery', 'lodash', 'moment', 'vue', 'expense', 'income', 'transfer', '
             // netAsset: 361304.18,//
             // netAsset: 351914.91,//
             // netAsset: 355949.98,//11-10 11月初预算 
-            netAsset: 349789.58,//12-3  
+            // netAsset: 349789.58,//12-3  
+            // netAsset: 347443.66,//12-9  
+            netAsset: 360356.16,//12-10
             accounting: accounting
 
         },
@@ -143,8 +145,8 @@ require(['jquery', 'lodash', 'moment', 'vue', 'expense', 'income', 'transfer', '
             ];
 
             self.monthlyRange = [
-                moment(self.initialDate).add("22", "M").format("YYYY-MM-DD"),
-                moment(self.initialDate).add("23", "M").format("YYYY-MM-DD")
+                moment(self.initialDate).add("23", "M").format("YYYY-MM-DD"),
+                moment(self.initialDate).add("24", "M").format("YYYY-MM-DD")
             ];
 
             _.each(self.categoryArray,function(v,k){
