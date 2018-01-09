@@ -7,6 +7,7 @@
     <title>dreambox index</title>
     <link rel="stylesheet" type="text/css" href="assets/css/admin-forms/css/admin-forms.css">
     <link rel="stylesheet" type="text/css" href="assets/css/skin/default_skin/css/theme.css">
+    <link rel="stylesheet" type="text/css" href="assets/js/lib/jquery-ui-1.12.1/jquery-ui.min.css">
     <style>
     #content_wrapper {
         left: 0;
@@ -91,6 +92,11 @@
 								</div>
 							</div>
 						</div> -->
+                        <!-- <datepicker id="test"></datepicker> -->
+        
+                        <selectmenu :optiontags="netassetoptions" @change="changeNetasset"></selectmenu>
+
+
                         <h1>所有者权益：{{accounting.formatMoney(netAsset, " ", 2, ",", ".")}}</h1>
                         <h1>总余额：{{accounting.formatMoney(totalBalance, " ", 2, ",", ".")}}</h1>
                         <h1>可分配金额：{{netAsset - totalBalance}}</h1>
@@ -136,20 +142,40 @@
             require.config({
         　　　　baseUrl: "./assets/js/",
         　　　　paths: {
-        　　　　　　"jquery": "lib/jquery3-2-1",
-        　　　　　　"lodash": "lib/lodash4-17-4",
-        　　　　　　"_": "lib/underscore1-8-3",
-        　　　　　　"moment": "lib/moment",
-                  "vue" :"lib/vue",
-                  "expense": "data/expense",
-                  "income": "data/income",
-                  "transfer": "data/transfer",
-                  "allocate": "data/allocate",
-                  "dreamobj": "data/dreamobj",
-                  "target": "data/target",
-                  "accounting": "lib/accounting-0-4-2",
+                    "jquery": "lib/jquery3-2-1",
+                    "lodash": "lib/lodash4-17-4",
+                    "_": "lib/underscore1-8-3",
+                    "moment": "lib/moment",
+                    "vue" :"lib/vue",
+                    "expense": "data/expense",
+                    "income": "data/income",
+                    "transfer": "data/transfer",
+                    "allocate": "data/allocate",
+                    "dreamobj": "data/dreamobj",
+                    "target": "data/target",
+                    "netasset": "data/netasset",
+                    "accounting": "lib/accounting-0-4-2",
+                    "jqueryui": "lib/jquery-ui-1.12.1/jquery-ui",
+                    // "jqueryui": "lib/jqueryui/jquery-ui.min",
+                    // "vuecomponents": 'vuecomponents'
         　　　　},
-                shim:{  
+                packages: [
+                    {
+                        name: 'components',
+                        location: 'component',
+                        main: 'components'
+                    },
+                ],
+                shim:{ 
+                    'components/date': {
+                        deps: ['jqueryui']
+                    },
+                    'components/ui': {
+                        deps: ['jqueryui']
+                    },
+                    'jqueryui': {
+                        deps:['jquery']
+                    },
                     'expense':{  
                           deps:[],  
                           exports: 'data'  
@@ -171,6 +197,10 @@
                           exports: 'data'  
                     } ,
                     'target':{  
+                          deps:[],  
+                          exports: 'data'  
+                    } ,
+                    'netasset':{  
                           deps:[],  
                           exports: 'data'  
                     } ,

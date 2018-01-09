@@ -1,9 +1,10 @@
 // var excelParser = require('excel-parser');
 // var path = require('path');
-// var fs = require('fs');
+var fs = require('fs');
 //     excelParser.parse({
-//         inFile: './myMoney1.xls',
-//         worksheet: 5,
+//         // inFile: './allocateRecord.xls',
+//         inFile: './allocateRecordxlsx.xlsx',
+//         worksheet: 1,
 //         skipEmpty: false,
 //         searchFor: {
 //             type:'loose'
@@ -17,16 +18,15 @@
 //         console.log(err);
 //         console.log(JSON.stringify(records))
 //         var res = 'var data = ' + JSON.stringify(records);
-//         fs.writeFile('./assets/js/data/transfer.js', res)
+//         fs.writeFile('./assets/js/data/allocate.js', res)
 //         });
 
-var fs = require('fs');
 var parseXlsx = require('excel');
 
-parseXlsx('./myMoney1.xlsx', '5', function(err, records) {
+parseXlsx('allocateRecordxlsx.xlsx', '4', function(err, records) {
     if(err) throw err;
     // data is an array of arrays
     console.log(JSON.stringify(records))
     var res = 'var data = ' + JSON.stringify(records);
-    fs.writeFile('./assets/js/data/transfer.js', res)
+    fs.writeFile('./assets/js/data/netasset.js', res)
 });

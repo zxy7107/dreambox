@@ -1,9 +1,11 @@
-require(['jquery', 'lodash', 'moment', 'vue', 'expense', 'income', 'transfer', 'allocate', 'dreamobj', 'target', 'accounting', '_'], function($, lodash, moment, Vue, expense, income, transfer, allocate, dreamobj, target, accounting) {
+require(['jquery', 'lodash', 'moment', 'vue', 'expense', 'income', 'transfer', 'allocate', 'dreamobj', 'target', 'netasset', 'accounting','components/ui', '_'], 
+        function($, lodash, moment, Vue, expense, income, transfer, allocate, dreamobj, target, netasset, accounting, ui) {
     // console.log(expense)
     // console.log(income)
     // console.log(transfer)
     // console.log(allocate)
     // console.log(target)
+    // console.log(netasset)
     new Vue({
         el: '#main',
         data: {
@@ -13,6 +15,8 @@ require(['jquery', 'lodash', 'moment', 'vue', 'expense', 'income', 'transfer', '
             transfer: transfer,
             allocate: allocate,
             target: target,
+            netasset: netasset,
+            netAsset: 0,
             spliterDate: '',
             initialDate: '2016-01-10',
             quarterlyRange: [],
@@ -58,16 +62,22 @@ require(['jquery', 'lodash', 'moment', 'vue', 'expense', 'income', 'transfer', '
                 }
 
             },
-            // netAsset: 361304.18,//
-            // netAsset: 351914.91,//
-            // netAsset: 355949.98,//11-10 11月初预算 
-            // netAsset: 349789.58,//12-3  
-            // netAsset: 347443.66,//12-9  
-            netAsset: 360356.16,//12-10
             accounting: accounting
-
         },
         computed: {
+            
+            netassetoptions: function(){
+                var self = this;
+                console.log(self.netasset)
+                var tmp = [];
+                _.each(self.netasset, function(item,k) {
+                    tmp.push({
+                        value: item[1],
+                        text: moment(item[0]).format('YYYY-MM -DD ') + '   ' + item[1]
+                    })
+                })
+                return tmp;
+            },
             dreamObj: function(){
                 var tmp = {};
                 _.each(dreamobj, function(v,k) {
@@ -131,8 +141,24 @@ require(['jquery', 'lodash', 'moment', 'vue', 'expense', 'income', 'transfer', '
             }
 
         },
+        components: {
+            // 'datepicker': date.datepicker,
+            'selectmenu': ui.selectmenu
+        },
         mounted: function() {
             var self = this;
+
+            // $( "#speed" ).selectmenu();
+         
+            // $( "#files" ).selectmenu();
+         
+            // $( "#number" )
+            //   .selectmenu()
+            //   .selectmenu( "menuWidget" )
+            //     .addClass( "overflow" );
+         
+            // $( "#salutation" ).selectmenu();
+
             self.spliterDate = moment({})
             self.quarterlyRange = [
                 moment(self.initialDate).add("7", "Q").format("YYYY-MM-DD"),
@@ -148,6 +174,10 @@ require(['jquery', 'lodash', 'moment', 'vue', 'expense', 'income', 'transfer', '
                 moment(self.initialDate).add("23", "M").format("YYYY-MM-DD"),
                 moment(self.initialDate).add("24", "M").format("YYYY-MM-DD")
             ];
+            // console.log(self.initialDate)
+            // console.log(self.quarterlyRange)
+            // console.log(self.annualRange)
+            // console.log(self.monthlyRange)
 
             _.each(self.categoryArray,function(v,k){
                 self.collectProjectsNames(v)
@@ -185,6 +215,10 @@ require(['jquery', 'lodash', 'moment', 'vue', 'expense', 'income', 'transfer', '
 
         },
         methods: {
+            changeNetasset: function(ui){
+                var self = this;
+                self.netAsset = ui.item.value;
+            },
             /**
              * 点击td显示记录明细（累积支取额，累积分配额）
              * @param  {[type]} item     [description]
@@ -196,12 +230,12 @@ require(['jquery', 'lodash', 'moment', 'vue', 'expense', 'income', 'transfer', '
                 switch(dataType) {
                     case 'expense':
                         $.each(self.projects[item.category]['expense'][item.name], function(k,v){
-                            console.log('·' + v[5] + ' - ' + v[9].replace(/\d\d:\d\d:\d\d/,'') + ' - ' + v[10])
+                            // console.log('·' + v[5] + ' - ' + v[9].replace(/\d\d:\d\d:\d\d/,'') + ' - ' + v[10])
                         })
                         break;
                     case 'allocate':
                         $.each(self.projects[item.category]['allocate'][item.name], function(k,v){
-                            console.log(v[1] + ' - ' + v[3])
+                            // console.log(v[1] + ' - ' + v[3])
                         })
                         break;
                     default:
@@ -291,7 +325,6 @@ require(['jquery', 'lodash', 'moment', 'vue', 'expense', 'income', 'transfer', '
                 if(rangeStart && rangeEnd) {
                    _.each(projects, function(v, k) {
                     var a = _.filter(v, function(v1) {
-
                         return moment(v1[dateIndex]).isBetween(rangeStart, rangeEnd, null, '[)')
                     })
                     
