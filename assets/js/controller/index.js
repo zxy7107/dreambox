@@ -7,13 +7,26 @@ require(['jquery',  'moment', 'vue', 'expense', 'income', 'transfer', 'allocate'
     // console.log(target)
     // console.log(netasset)
     // console.log(dreamobj) //梦想概要（如类型、截止日期等）
-
     dreamobj.shift();
     // records:
     expense.shift();
     allocate.shift();
     target.shift();
-    
+    var config = {
+        allocate: {
+            projectNameIndex: 2,
+            dateIndex: 1
+        },
+        expense: {
+            projectNameIndex: 8, //项目：对应excel表中第9列
+            dateIndex: 9,//日期：第10列
+        },
+        target: {
+            projectNameIndex: 1,
+            dateIndex: 0,
+        },
+
+    }
     new Vue({
         el: '#main',
         data: {
@@ -234,7 +247,7 @@ require(['jquery',  'moment', 'vue', 'expense', 'income', 'transfer', 'allocate'
                         break;
                 }
                 
-
+                
                 _.each(['allocate', 'expense', 'target'], function(v1, k1) {
                     self.divideRecordsByCategory(v1, v, rangeStart, rangeEnd);
 
@@ -290,6 +303,15 @@ require(['jquery',  'moment', 'vue', 'expense', 'income', 'transfer', 'allocate'
                     default:
                         break;
                 }
+                //计算
+                // records :
+                //      annual
+                //            expense
+                //                  Y/保险
+                //                  Y/新年礼物
+                //            allocate    
+                //            target    
+                console.log(JSON.stringify(self.records))
                 _.each(self.records[category][dataType], function(v,k) {
                     self.dreamItem[k][account]  += _.reduce(v, function(memo, item) {
                         return memo + parseFloat(item[index]);
@@ -312,28 +334,8 @@ require(['jquery',  'moment', 'vue', 'expense', 'income', 'transfer', 'allocate'
             },
             divideRecordsByCategory: function(dataType, category, rangeStart, rangeEnd) {
                 var self = this;
-                var projectNameIndex = '';
-                switch (dataType) {
-                    case 'allocate':
-                        projectNameIndex = 2;
-                        dateIndex = 1;
-                        break;
-                    case 'expense':
-                        // projectNameIndex = 6; 
-                        projectNameIndex = 8; //项目：对应excel表中第9列
-                        // dateIndex = 1;
-                        dateIndex = 9;//日期：第10列
-                        break;
-                    case 'target':
-                        projectNameIndex = 1;
-                        dateIndex = 0;
-                        break;
-                    default:
-                        break;
-                }
-                // console.log(_.unzip(dreamobj)[0])
                 var records = _.groupBy(self[dataType], function(v) {
-                    return v[projectNameIndex];
+                    return v[config[dataType].projectNameIndex];
                 });
                 if (dataType == 'expense') {
                     records['本月非项目支出（日常消费）预算'] = records[''];
@@ -341,13 +343,12 @@ require(['jquery',  'moment', 'vue', 'expense', 'income', 'transfer', 'allocate'
 
                 records = _.pick(records, self.dreamItemNameByCategory[category])
 
-
                 var tmp = {};
             
                 if(rangeStart && rangeEnd) {
                    _.each(records, function(v, k) {
                     var a = _.filter(v, function(v1) {
-                        return moment(v1[dateIndex]).isBetween(rangeStart, rangeEnd, null, '[)')
+                        return moment(v1[config[dataType].dateIndex]).isBetween(rangeStart, rangeEnd, null, '[)')
                     })
                     
                     if (a.length) tmp[k] = a;
@@ -360,7 +361,8 @@ require(['jquery',  'moment', 'vue', 'expense', 'income', 'transfer', 'allocate'
                     // console.log(tmp)
                 }
                 self.records[category][dataType] = tmp;
-
+                console.log('===' + category + '===')
+                console.log(self.records)
             },
             
         }
