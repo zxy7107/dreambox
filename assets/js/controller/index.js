@@ -1,5 +1,6 @@
 require(['jquery',  'moment', 'vue', 'expense', 'income', 'transfer', 'allocate', 'dreamobj', 'target', 'netasset', 'accounting','components/ui', '_'], 
         function($, moment, Vue, expense, income, transfer, allocate, dreamobj, target, netasset, accounting, ui) {
+    window.moment = moment;
     // console.log(expense)
     // console.log(income)
     // console.log(transfer)
@@ -12,6 +13,10 @@ require(['jquery',  'moment', 'vue', 'expense', 'income', 'transfer', 'allocate'
     expense.shift();
     allocate.shift();
     target.shift();
+    netasset.shift();
+    //净资产 = 收入-支出+余额变更-负债变更
+    
+    var initialDate =  '2016-01-10';
     var config = {
         allocate: {
             projectNameIndex: 2,
@@ -31,94 +36,9 @@ require(['jquery',  'moment', 'vue', 'expense', 'income', 'transfer', 'allocate'
             moneyIndex: 2,
             account: 'target',
         },
-
     }
 
-    new Vue({
-        el: '#main',
-        data: {
-            expense: expense,
-            income: income,
-            transfer: transfer,
-            allocate: allocate,
-            target: target,
-            netasset: netasset,
-            netAsset: 0,
-            spliterDate: '',
-            initialDate: '2016-01-10',
-            quarterlyRange: [],
-            annualRange: [],
-            monthlyRange: [],
-            records: {
-                quarterly: {
-                    expense: {},
-                    allocate: {},
-                    target: {}
-                },
-                annual: {
-                    expense: {},
-                    allocate: {},
-                    target: {}
-                },
-                once: {
-                    expense: {},
-                    allocate: {},
-                    target: {}
-                },
-                longterm: {
-                    expense: {},
-                    allocate: {},
-                    target: {}
-                },
-                monthly: {
-                    expense: {},
-                    allocate: {},
-                    target: {}
-                },
-                decoration: {
-                    expense: {},
-                    allocate: {},
-                    target: {}
-                }
-
-            },
-            accounting: accounting
-        },
-        computed: {
-            dreamItemNameByCategory: function(){
-                var self = this;
-                var tmp = {};
-                var category = _.groupBy(dreamobj, function(v){
-                    return v[1];
-                })
-                _.each(category, function(v,k) {
-                    tmp[k] = [];
-                    _.each(v, function(vv,kk) {
-                        tmp[k].push(vv[0])
-                    })
-                })
-                return tmp;
-            },
-            
-            categoryName: function(){
-                var self = this;
-                var tmp = _.unzip(dreamobj)[1];
-                tmp = _.uniq(tmp);
-                // ["longterm", "decoration", "annual", "once", "quarterly", "monthly"]
-                return tmp;//去重
-            },
-            netassetoptions: function(){
-                var self = this;
-                var tmp = [];
-                _.each(self.netasset, function(item,k) {
-                    tmp.push({
-                        value: item[1],
-                        text: moment(item[0]).format('YYYY-MM -DD ') + '   ' + item[1]
-                    })
-                })
-                return tmp;
-            },
-            dreamItem: function(){
+var resetDreamItem = function(){
                 // var tmp = {};
                 var tmp = [];
                 //数组dreamobj转成对象
@@ -158,23 +78,130 @@ require(['jquery',  'moment', 'vue', 'expense', 'income', 'transfer', 'allocate'
                 //     }
                 // }
                 return tmp;
+            };
+
+    new Vue({
+        el: '#main',
+        data: {
+            
+            expense: expense,
+            income: income,
+            transfer: transfer,
+            allocate: allocate,
+            target: target,
+            netasset: netasset,
+            netAsset: 0,
+            dateSelected: '',
+            spliterDate: '',
+            records: {
+                quarterly: {
+                    expense: {},
+                    allocate: {},
+                    target: {}
+                },
+                annual: {
+                    expense: {},
+                    allocate: {},
+                    target: {}
+                },
+                once: {
+                    expense: {},
+                    allocate: {},
+                    target: {}
+                },
+                longterm: {
+                    expense: {},
+                    allocate: {},
+                    target: {}
+                },
+                monthly: {
+                    expense: {},
+                    allocate: {},
+                    target: {}
+                },
+                decoration: {
+                    expense: {},
+                    allocate: {},
+                    target: {}
+                }
+
             },
-            dreamItemArray: function(){
-                // var tmp = {};
-                var tmp = [];
-                //数组dreamobj转成对象
-                _.each(dreamobj, function(v,k) {
-                    var obj = _.object(['itemName', 'category', 'deadline', 'status', 'totalAllocated', 'totalDrawed'], v);
-                    tmp.push(_.extend(obj, {
-                        totalAllocated: parseFloat(v[4]), //初始分配额
-                        totalDrawed: parseFloat(v[5]),//初始支取额
-                        target: '',
-                        balance: 0, //余额
-                        gap: 0 //还需累积 / 超支
-                    }))
+            dreamItem: resetDreamItem(),
+            accounting: accounting,
+            rangeStart: {
+                    quarterly: moment(initialDate).add("7", "Q").format("YYYY-MM-DD"),
+                    annual:moment(initialDate).add("1", "y").format("YYYY-MM-DD"),
+                    monthly: moment(initialDate).add("23", "M").format("YYYY-MM-DD"),
+                    once: '',
+                    longterm: ''
+                },
+                rangeEnd: {
+                    quarterly: moment(initialDate).add("8", "Q").format("YYYY-MM-DD"),
+                    annual:moment(initialDate).add("2", "y").format("YYYY-MM-DD"),
+                    monthly: moment(initialDate).add("24", "M").format("YYYY-MM-DD"),
+                    once: '',
+                    longterm: ''
+                }
+        },
+        computed: {
+
+            standardDay: function(){
+                var self = this;
+                return moment(self.dateSelected).startOf('month').add(9,'days').format('YYYY-MM-DD');
+            },
+            duration: function(){
+                var self = this;
+                return moment(self.standardDay).diff(initialDate, 'month', true);
+            },
+            month: function(){
+                var self = this;
+                return moment(self.dateSelected).isBefore(self.standardDay) ?  self.duration-1 : self.duration;
+            },
+            year: function(){
+                var self = this;
+                var tmp = Math.floor(self.duration/12);
+                return moment(self.dateSelected).isBefore(self.standardDay) ?  tmp-1 : tmp;;
+            },
+            quarter: function(){
+                var self = this;
+                var tmp = Math.floor(self.duration/3);
+                return moment(self.dateSelected).isBefore(self.standardDay) ?  tmp-1 : tmp;;
+            },
+            dreamItemNameByCategory: function(){
+                var self = this;
+                var tmp = {};
+                var category = _.groupBy(dreamobj, function(v){
+                    return v[1];
+                })
+                _.each(category, function(v,k) {
+                    tmp[k] = [];
+                    _.each(v, function(vv,kk) {
+                        tmp[k].push(vv[0])
+                    })
                 })
                 return tmp;
             },
+            
+            categoryName: function(){
+                var self = this;
+                var tmp = _.unzip(dreamobj)[1];
+                tmp = _.uniq(tmp);//去重
+                return tmp;// ["longterm", "decoration", "annual", "once", "quarterly", "monthly"]
+            },
+            netassetoptions: function(){
+                var self = this;
+                var tmp = [];
+                _.each(self.netasset, function(item,k) {
+                    tmp.push({
+                        value: item[1],
+                        text: moment(item[0]).format('YYYY-MM -DD ') + '   ' + item[1],
+                        date: item[0]
+                    })
+                })
+                return tmp;
+            },
+
+            
             dreamList: function() {
                 var self = this;
                 _.each(self.categoryName, function(category,k) {
@@ -185,7 +212,6 @@ require(['jquery',  'moment', 'vue', 'expense', 'income', 'transfer', 'allocate'
                     self.updateTargetInDreamItem(category, 'target')
                 })
                 var tmp = {}
-                console.log(self.dreamItem)
                 $.each(self.dreamItem, function(k, v) {
                     if (!tmp[v['category']]) {
                         tmp[v['category']] = [];
@@ -214,61 +240,72 @@ require(['jquery',  'moment', 'vue', 'expense', 'income', 'transfer', 'allocate'
         },
         mounted: function() {
             var self = this;
-
+            
+            self.calculateRangeStart();
+            self.calculateRangeEnd();
             self.spliterDate = moment({})
-            self.quarterlyRange = [
-                moment(self.initialDate).add("7", "Q").format("YYYY-MM-DD"),
-                moment(self.initialDate).add("8", "Q").format("YYYY-MM-DD")
-
-            ];
-            self.annualRange = [
-                moment(self.initialDate).add("1", "y").format("YYYY-MM-DD"),
-                moment(self.initialDate).add("2", "y").format("YYYY-MM-DD")
-            ];
-
-            self.monthlyRange = [
-                moment(self.initialDate).add("23", "M").format("YYYY-MM-DD"),
-                moment(self.initialDate).add("24", "M").format("YYYY-MM-DD")
-            ];
-
-            _.each(self.categoryName,function(v,k){
-                var rangeStart = '', rangeEnd = '';
-                switch(v) {
-                    case 'quarterly': 
-                        rangeStart = self.quarterlyRange[0];
-                        rangeEnd = self.quarterlyRange[1];
-                        break;
-                    case 'annual': 
-                        rangeStart = self.annualRange[0];
-                        rangeEnd = self.annualRange[1];
-                        break;
-                    case 'monthly':
-                        rangeStart = self.monthlyRange[0];
-                        rangeEnd = self.monthlyRange[1];
-                        break;
-                    case 'once': 
-                    case 'longterm': 
-                        rangeStart = '';
-                        rangeEnd = '';
-                        break;
-                    default: 
-                        break;
-                }
-                
-                
-                _.each(['allocate', 'expense', 'target'], function(v1, k1) {
-                    self.divideRecordsByCategory(v1, v, rangeStart, rangeEnd);
-
-                })
-
-            })
-
+            self.divideRecords();
 
         },
         methods: {
+            
+            divideRecords: function(){
+                var self = this;
+                _.each(self.categoryName,function(v,k){
+                    self.divideRecordsByCategory('allocate', v)
+                    self.divideRecordsByCategory('expense', v)
+                    self.divideRecordsByCategory('target', v)
+                })
+                // console.log(JSON.stringify(self.records));
+            },
+            calculateRangeStart: function(){
+                var self = this;
+                console.log(self.month)
+                console.log(self.quarter)
+                console.log(self.year)
+                self.rangeStart = {
+                    quarterly: moment(initialDate).add(self.quarter, "Q").format("YYYY-MM-DD"),
+                    annual:moment(initialDate).add(self.year, "y").format("YYYY-MM-DD"),
+                    monthly: moment(initialDate).add(self.month, "M").format("YYYY-MM-DD"),
+                    once: initialDate,
+                    longterm: initialDate
+                }
+            },
+            calculateRangeEnd: function(){
+                var self = this;
+                // self.rangeEnd = {
+                //     quarterly: moment(initialDate).add(self.quarter+1, "Q").subtract(1,'days').format("YYYY-MM-DD"),
+                //     annual:moment(initialDate).add(self.year+1, "y").subtract(1,'days').format("YYYY-MM-DD"),
+                //     monthly: moment(initialDate).add(self.month+1, "M").subtract(1,'days').format("YYYY-MM-DD"),
+                //     once: '',
+                //     longterm: ''                
+                // }
+                var endDay = moment(self.dateSelected).add(1,'days').format("YYYY-MM-DD");
+                self.rangeEnd = {
+                    quarterly: endDay,
+                    annual: endDay,
+                    monthly: endDay,
+                    once: endDay,
+                    longterm: endDay                
+                }
+                console.log('month: [' + self.rangeStart['monthly'] + '--' +  self.rangeEnd['monthly'] + ')')
+                console.log('quarter: [' + self.rangeStart['quarterly'] + '--' +  self.rangeEnd['quarterly'] + ')')
+                console.log('year: [' + self.rangeStart['annual'] + '--' +  self.rangeEnd['annual'] + ')')
+                console.log('once: [' + self.rangeStart['once'] + '--' +  self.rangeEnd['once'] + ')')
+                console.log('longterm: [' + self.rangeStart['longterm'] + '--' +  self.rangeEnd['longterm'] + ')')
+            },
             changeNetasset: function(ui){
                 var self = this;
                 self.netAsset = ui.item.value;
+                
+                var tmp = _.filter(self.netassetoptions, function(netassetObj){
+                    return netassetObj.value == self.netAsset;
+                })
+                self.dateSelected = tmp[0].date;
+                self.dreamItem = resetDreamItem();
+                self.calculateRangeStart();
+                self.calculateRangeEnd();
+                self.divideRecords();
             },
             /**
              * 点击td显示记录明细（累积支取额，累积分配额）
@@ -314,6 +351,7 @@ require(['jquery',  'moment', 'vue', 'expense', 'income', 'transfer', 'allocate'
                 })
                 // console.log(JSON.stringify(self.records))
 
+
             },
             updateTargetInDreamItem: function(category, dataType){
                 var self = this;
@@ -322,8 +360,10 @@ require(['jquery',  'moment', 'vue', 'expense', 'income', 'transfer', 'allocate'
                     self.dreamItem[k]['gap']  = self.dreamItem[k]['target'] - self.dreamItem[k]['totalAllocated']
                 })
             },
-            divideRecordsByCategory: function(dataType, category, rangeStart, rangeEnd) {
+            divideRecordsByCategory: function(dataType, category) {
                 var self = this;
+                var rangeStart = self.rangeStart[category]
+                var rangeEnd = self.rangeEnd[category]
                 var records = _.groupBy(self[dataType], function(v) {
                     return v[config[dataType].projectNameIndex];
                 });
