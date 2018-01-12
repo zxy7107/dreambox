@@ -1,15 +1,22 @@
-require(['jquery', 'lodash', 'moment', 'vue', 'expense', 'income', 'transfer', 'allocate', 'dreamobj', 'target', 'netasset', 'accounting','components/ui', '_'], 
-        function($, lodash, moment, Vue, expense, income, transfer, allocate, dreamobj, target, netasset, accounting, ui) {
+require(['jquery',  'moment', 'vue', 'expense', 'income', 'transfer', 'allocate', 'dreamobj', 'target', 'netasset', 'accounting','components/ui', '_'], 
+        function($, moment, Vue, expense, income, transfer, allocate, dreamobj, target, netasset, accounting, ui) {
     // console.log(expense)
     // console.log(income)
     // console.log(transfer)
     // console.log(allocate)
     // console.log(target)
     // console.log(netasset)
+    // console.log(dreamobj) //梦想概要（如类型、截止日期等）
+
+    dreamobj.shift();
+    // records:
+    expense.shift();
+    allocate.shift();
+    target.shift();
+    
     new Vue({
         el: '#main',
         data: {
-            categoryArray: ['quarterly', 'annual', 'once', 'longterm', 'monthly', 'decoration'],
             expense: expense,
             income: income,
             transfer: transfer,
@@ -22,14 +29,7 @@ require(['jquery', 'lodash', 'moment', 'vue', 'expense', 'income', 'transfer', '
             quarterlyRange: [],
             annualRange: [],
             monthlyRange: [],
-            projectsNames: {
-                // quarterly: [],
-                // annual: [],
-                // once: [],
-                // longterm: [],
-                // monthly: [],
-            },
-            projects: {
+            records: {
                 quarterly: {
                     expense: {},
                     allocate: {},
@@ -65,10 +65,30 @@ require(['jquery', 'lodash', 'moment', 'vue', 'expense', 'income', 'transfer', '
             accounting: accounting
         },
         computed: {
+            dreamItemNameByCategory: function(){
+                var self = this;
+                var tmp = {};
+                var category = _.groupBy(dreamobj, function(v){
+                    return v[1];
+                })
+                _.each(category, function(v,k) {
+                    tmp[k] = [];
+                    _.each(v, function(vv,kk) {
+                        tmp[k].push(vv[0])
+                    })
+                })
+                return tmp;
+            },
             
+            categoryName: function(){
+                var self = this;
+                var tmp = _.unzip(dreamobj)[1];
+                tmp = _.uniq(tmp);
+                // ["longterm", "decoration", "annual", "once", "quarterly", "monthly"]
+                return tmp;//去重
+            },
             netassetoptions: function(){
                 var self = this;
-                console.log(self.netasset)
                 var tmp = [];
                 _.each(self.netasset, function(item,k) {
                     tmp.push({
@@ -78,48 +98,74 @@ require(['jquery', 'lodash', 'moment', 'vue', 'expense', 'income', 'transfer', '
                 })
                 return tmp;
             },
-            dreamObj: function(){
-                var tmp = {};
+            dreamItem: function(){
+                // var tmp = {};
+                var tmp = [];
+                //数组dreamobj转成对象
                 _.each(dreamobj, function(v,k) {
-                        if(v[0] !== '项目') {
-                            tmp[v[0]] = {
-                                target: '',
-                                category: v[1],
-                                deadline: v[2],
-                                status: v[3],
-                                totalAllocated: parseFloat(v[4]),
-                                totalDrawed: parseFloat(v[5]),
-                                balance: 0,
-                                gap: 0
-                            }
-
-                        }
-                    })
+                    var obj = _.object(['itemName', 'category', 'deadline', 'status', 'totalAllocated', 'totalDrawed'], v);
+                    tmp.push(_.extend(obj, {
+                        totalAllocated: parseFloat(v[4]), //初始分配额
+                        totalDrawed: parseFloat(v[5]),//初始支取额
+                        target: '',
+                        balance: 0, //余额
+                        gap: 0 //还需累积 / 超支
+                    }))
+                })
+                tmp = _.indexBy(tmp, 'itemName');
+                // {
+                //     "1年半21+10w（2018-1-9）":{
+                //         "itemName":"1年半21+10w（2018-1-9）",
+                //         "category":"longterm",
+                //         "deadline":"",
+                //         "status":"",
+                //         "totalAllocated":0,
+                //         "totalDrawed":0,
+                //         "target":"",
+                //         "balance":0,
+                //         "gap":0
+                //     },
+                //     "新房装修":{
+                //         "itemName":"新房装修",
+                //         "category":"decoration",
+                //         "deadline":"43252",
+                //         "status":"",
+                //         "totalAllocated":0,
+                //         "totalDrawed":0,
+                //         "target":"",
+                //         "balance":0,
+                //         "gap":0
+                //     }
+                // }
+                return tmp;
+            },
+            dreamItemArray: function(){
+                // var tmp = {};
+                var tmp = [];
+                //数组dreamobj转成对象
+                _.each(dreamobj, function(v,k) {
+                    var obj = _.object(['itemName', 'category', 'deadline', 'status', 'totalAllocated', 'totalDrawed'], v);
+                    tmp.push(_.extend(obj, {
+                        totalAllocated: parseFloat(v[4]), //初始分配额
+                        totalDrawed: parseFloat(v[5]),//初始支取额
+                        target: '',
+                        balance: 0, //余额
+                        gap: 0 //还需累积 / 超支
+                    }))
+                })
                 return tmp;
             },
             dreamList: function() {
                 var self = this;
-
-                _.each(self.categoryArray, function(v,k) {
-                    _.each(['expense', 'allocate'], function(v1,k1) {
-                        var direction = '';
-                        switch(v1) {
-                            case 'expense':
-                                direction = 'totalDrawed';
-                                break;
-                            case 'allocate':
-                                direction = 'totalAllocated';
-                                break;
-                            default:
-                                break;
-                        }
-                        self.calculateTotalAmount(v, v1, direction);
+                _.each(self.categoryName, function(category,k) {
+                    _.each(['expense', 'allocate'], function(dataType,k1) {
+                        self.calculateTotalAmount(category, dataType);
                     })
-                    self.attachTarget(v)
+                    self.updateTargetInDreamItem(category)
 
                 })
                 var tmp = {}
-                $.each(self.dreamObj, function(k, v) {
+                $.each(self.dreamItem, function(k, v) {
                     if (!tmp[v['category']]) {
                         tmp[v['category']] = [];
                     }
@@ -148,17 +194,6 @@ require(['jquery', 'lodash', 'moment', 'vue', 'expense', 'income', 'transfer', '
         mounted: function() {
             var self = this;
 
-            // $( "#speed" ).selectmenu();
-         
-            // $( "#files" ).selectmenu();
-         
-            // $( "#number" )
-            //   .selectmenu()
-            //   .selectmenu( "menuWidget" )
-            //     .addClass( "overflow" );
-         
-            // $( "#salutation" ).selectmenu();
-
             self.spliterDate = moment({})
             self.quarterlyRange = [
                 moment(self.initialDate).add("7", "Q").format("YYYY-MM-DD"),
@@ -174,13 +209,8 @@ require(['jquery', 'lodash', 'moment', 'vue', 'expense', 'income', 'transfer', '
                 moment(self.initialDate).add("23", "M").format("YYYY-MM-DD"),
                 moment(self.initialDate).add("24", "M").format("YYYY-MM-DD")
             ];
-            // console.log(self.initialDate)
-            // console.log(self.quarterlyRange)
-            // console.log(self.annualRange)
-            // console.log(self.monthlyRange)
 
-            _.each(self.categoryArray,function(v,k){
-                self.collectProjectsNames(v)
+            _.each(self.categoryName,function(v,k){
                 var rangeStart = '', rangeEnd = '';
                 switch(v) {
                     case 'quarterly': 
@@ -229,12 +259,12 @@ require(['jquery', 'lodash', 'moment', 'vue', 'expense', 'income', 'transfer', '
                 var self = this;
                 switch(dataType) {
                     case 'expense':
-                        $.each(self.projects[item.category]['expense'][item.name], function(k,v){
+                        $.each(self.records[item.category]['expense'][item.name], function(k,v){
                             // console.log('·' + v[5] + ' - ' + v[9].replace(/\d\d:\d\d:\d\d/,'') + ' - ' + v[10])
                         })
                         break;
                     case 'allocate':
-                        $.each(self.projects[item.category]['allocate'][item.name], function(k,v){
+                        $.each(self.records[item.category]['allocate'][item.name], function(k,v){
                             // console.log(v[1] + ' - ' + v[3])
                         })
                         break;
@@ -243,48 +273,41 @@ require(['jquery', 'lodash', 'moment', 'vue', 'expense', 'income', 'transfer', '
                 }
                 
             },
-            collectProjectsNames: function(category) {
-                var self = this;
-                _.each(self.dreamObj, function(v, k) {
-                    if (_.isMatch(v, { category: category })) {
-                        if(self.projectsNames[category] == void(0)) {
-                            self.projectsNames[category] = [];
-                        } 
-                        self.projectsNames[category].push(k)
-                    }
-                })
-            },
-            calculateTotalAmount: function(category, dataType, direction) {
+            calculateTotalAmount: function(category, dataType) {
                 var self = this;
                 var index = '';
+                var account = '';
                 switch(dataType) {
                     case 'expense':
                         // index = 9;
                         index = 5;//金额：第6列
+                        account = 'totalDrawed';
                         break;
                     case 'allocate':
                         index = 3;
+                        account = 'totalAllocated';
                         break;
                     default:
                         break;
                 }
-                _.each(self.projects[category][dataType], function(v,k) {
-                    self.dreamObj[k][direction]  += _.reduce(v, function(memo, item) {
+                _.each(self.records[category][dataType], function(v,k) {
+                    self.dreamItem[k][account]  += _.reduce(v, function(memo, item) {
                         return memo + parseFloat(item[index]);
                     }, 0);
 
-                    self.dreamObj[k]['balance'] = self.dreamObj[k]['totalAllocated'] -  self.dreamObj[k]['totalDrawed'];
-                    
+                    self.dreamItem[k]['balance'] = self.dreamItem[k]['totalAllocated'] -  self.dreamItem[k]['totalDrawed'];
+                    // console.log(JSON.stringify(self.dreamItem))
                 })
+                // console.log(JSON.stringify(self.records))
 
 
             },
-            attachTarget: function(category){
+            updateTargetInDreamItem: function(category){
                 var self = this;
-                _.each(self.projects[category]['target'], function(v,k) {
-                    self.dreamObj[k]['target']  = parseFloat(v[v.length-1][2])
-                    self.dreamObj[k]['gap']  = self.dreamObj[k]['target'] - self.dreamObj[k]['totalAllocated']
-
+                var index = 2;//allocateRecordxlsx中target页excel表第2列：dreamItem名称
+                _.each(self.records[category]['target'], function(v,k) {
+                    self.dreamItem[k]['target']  = parseFloat(_.flatten(v)[index])
+                    self.dreamItem[k]['gap']  = self.dreamItem[k]['target'] - self.dreamItem[k]['totalAllocated']
                 })
             },
             divideRecordsByCategory: function(dataType, category, rangeStart, rangeEnd) {
@@ -308,22 +331,21 @@ require(['jquery', 'lodash', 'moment', 'vue', 'expense', 'income', 'transfer', '
                     default:
                         break;
                 }
-                var projects = _.groupBy(self[dataType], function(v) {
+                // console.log(_.unzip(dreamobj)[0])
+                var records = _.groupBy(self[dataType], function(v) {
                     return v[projectNameIndex];
                 });
                 if (dataType == 'expense') {
-                    projects['本月非项目支出（日常消费）预算'] = projects[''];
-                    // projects = _.omit(projects, '');
-                    // console.log(projects['本月非项目支出（日常消费）预算'])
-                    projects = _.omit(projects, '项目');
+                    records['本月非项目支出（日常消费）预算'] = records[''];
                 }
 
+                records = _.pick(records, self.dreamItemNameByCategory[category])
 
-                projects = _.pick(projects, self.projectsNames[category])
+
                 var tmp = {};
-          
+            
                 if(rangeStart && rangeEnd) {
-                   _.each(projects, function(v, k) {
+                   _.each(records, function(v, k) {
                     var a = _.filter(v, function(v1) {
                         return moment(v1[dateIndex]).isBetween(rangeStart, rangeEnd, null, '[)')
                     })
@@ -331,13 +353,13 @@ require(['jquery', 'lodash', 'moment', 'vue', 'expense', 'income', 'transfer', '
                     if (a.length) tmp[k] = a;
                 })  
                } else {
-                tmp = projects;
+                tmp = records;
                }
                
                 if(category == 'quarterly') {
-                    console.log(tmp)
+                    // console.log(tmp)
                 }
-                self.projects[category][dataType] = tmp;
+                self.records[category][dataType] = tmp;
 
             },
             

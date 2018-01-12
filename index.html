@@ -120,8 +120,8 @@
                                     <tbody>
                                         <template v-for="(v,k) in dreamList">
                                         <tr v-for="(item,index) in v" >
-                                        		<td>{{item['category']}}</td>
-                                        		<td >{{item['name']}}</td>
+                                    		<td>{{item['category']}}</td>
+                                    		<td >{{item['name']}}</td>
                                             <td>{{accounting.formatMoney(item['balance'], " ", 2, ",", ".")}}</td>
                                             <td>{{accounting.formatMoney(item['gap'], " ", 2, ",", ".")}}</td>
                                             <td>{{accounting.formatMoney(item['target'], " ", 2, ",", ".")}}</td>
