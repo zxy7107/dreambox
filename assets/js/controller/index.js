@@ -15,18 +15,25 @@ require(['jquery',  'moment', 'vue', 'expense', 'income', 'transfer', 'allocate'
     var config = {
         allocate: {
             projectNameIndex: 2,
-            dateIndex: 1
+            dateIndex: 1,
+            moneyIndex: 3,
+            account: 'totalAllocated',
         },
         expense: {
             projectNameIndex: 8, //项目：对应excel表中第9列
             dateIndex: 9,//日期：第10列
+            moneyIndex: 5,//金额：第6列
+            account: 'totalDrawed',
         },
         target: {
             projectNameIndex: 1,
             dateIndex: 0,
+            moneyIndex: 2,
+            account: 'target',
         },
 
     }
+
     new Vue({
         el: '#main',
         data: {
@@ -171,13 +178,14 @@ require(['jquery',  'moment', 'vue', 'expense', 'income', 'transfer', 'allocate'
             dreamList: function() {
                 var self = this;
                 _.each(self.categoryName, function(category,k) {
-                    _.each(['expense', 'allocate'], function(dataType,k1) {
-                        self.calculateTotalAmount(category, dataType);
-                    })
-                    self.updateTargetInDreamItem(category)
-
+                    //计算每个dreamItem在对应周期内的expense和allocate总和
+                    self.calculateTotalAmount(category, 'expense');
+                    self.calculateTotalAmount(category, 'allocate');
+                    //在每个dreamItem中添加对应周期内的target值
+                    self.updateTargetInDreamItem(category, 'target')
                 })
                 var tmp = {}
+                console.log(self.dreamItem)
                 $.each(self.dreamItem, function(k, v) {
                     if (!tmp[v['category']]) {
                         tmp[v['category']] = [];
@@ -288,21 +296,6 @@ require(['jquery',  'moment', 'vue', 'expense', 'income', 'transfer', 'allocate'
             },
             calculateTotalAmount: function(category, dataType) {
                 var self = this;
-                var index = '';
-                var account = '';
-                switch(dataType) {
-                    case 'expense':
-                        // index = 9;
-                        index = 5;//金额：第6列
-                        account = 'totalDrawed';
-                        break;
-                    case 'allocate':
-                        index = 3;
-                        account = 'totalAllocated';
-                        break;
-                    default:
-                        break;
-                }
                 //计算
                 // records :
                 //      annual
@@ -311,10 +304,9 @@ require(['jquery',  'moment', 'vue', 'expense', 'income', 'transfer', 'allocate'
                 //                  Y/新年礼物
                 //            allocate    
                 //            target    
-                console.log(JSON.stringify(self.records))
                 _.each(self.records[category][dataType], function(v,k) {
-                    self.dreamItem[k][account]  += _.reduce(v, function(memo, item) {
-                        return memo + parseFloat(item[index]);
+                    self.dreamItem[k][config[dataType].account]  += _.reduce(v, function(memo, item) {
+                        return memo + parseFloat(item[config[dataType].moneyIndex]);
                     }, 0);
 
                     self.dreamItem[k]['balance'] = self.dreamItem[k]['totalAllocated'] -  self.dreamItem[k]['totalDrawed'];
@@ -322,13 +314,11 @@ require(['jquery',  'moment', 'vue', 'expense', 'income', 'transfer', 'allocate'
                 })
                 // console.log(JSON.stringify(self.records))
 
-
             },
-            updateTargetInDreamItem: function(category){
+            updateTargetInDreamItem: function(category, dataType){
                 var self = this;
-                var index = 2;//allocateRecordxlsx中target页excel表第2列：dreamItem名称
                 _.each(self.records[category]['target'], function(v,k) {
-                    self.dreamItem[k]['target']  = parseFloat(_.flatten(v)[index])
+                    self.dreamItem[k][config[dataType].account]  = parseFloat(_.flatten(v)[config[dataType].moneyIndex])
                     self.dreamItem[k]['gap']  = self.dreamItem[k]['target'] - self.dreamItem[k]['totalAllocated']
                 })
             },
@@ -361,8 +351,6 @@ require(['jquery',  'moment', 'vue', 'expense', 'income', 'transfer', 'allocate'
                     // console.log(tmp)
                 }
                 self.records[category][dataType] = tmp;
-                console.log('===' + category + '===')
-                console.log(self.records)
             },
             
         }
